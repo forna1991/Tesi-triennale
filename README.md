@@ -1,2 +1,3 @@
-# Tesi
-tesi repository 4 friends
+# Tesi triennale
+
+Reposatory contente la mia tesi di laurea triennale
