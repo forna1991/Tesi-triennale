@@ -1,0 +1,235 @@
+\chapter{Pseudocodice e documentazione}
+
+\begin{algorithm}[ht]
+    \SetKwData{Matrix}{matrix}\SetKwData{Rev}{rev}\SetKwData{Dim}{n}\SetKwData{Tmp}{tmp}\SetKwData{Index}{i}\SetKwData{Jndex}{j}
+    \KwDati{\\ \Matrix: matrice $3\times n$ contenente i valori ritornati dall'algoritmo di pathshape\\
+    \Dim: numero di vettori contenuti in \textit{matrix}\\
+    \Rev: indice al quale avviene l'inversione citata nel capitolo 2}
+    \KwRisult{La matrice di vettori \Matrix ordinata e normalizzata}
+    \BlankLine
+    $tmp \leftarrow$ [ ]\;
+    \For{$i \leftarrow 0$ \KwTo $rev$}{
+        \Tmp[$i$] $\leftarrow$ \Matrix[$i$]\;
+    }
+    $j \leftarrow rev+1$\;
+    \For{$i \leftarrow n-1$ \KwTo $rev+1$} {
+        \Tmp[$j$] $\leftarrow$ \Matrix[$i$]\;
+        $j \leftarrow j+1$\;
+    }
+    \tcp{qui si conclude il riordinamento e comincia la fase di normalizzazione}
+    \For{$e \in$ \Tmp}{
+        \emph{prendere $r_1$ e $l_1$ come elementi precedente e successivo a $e$, $r_2$ come precedente di $r_1$ e $l_2$ come successivo di $l_1$}\;
+        $e \leftarrow (r_2w_2+r_1w_1+e+l_1w_1+l_2w_2)/(2w_2+2w_1+1)$\;
+    }
+\caption{L'algoritmo \textbf{filterPoints}, necessario alla correzione preliminare del codice}
+\end{algorithm}
+
+\newpage
+\begin{algorithm}[!t]
+    \SetKwData{Matrix}{matrix}\SetKwData{Dim}{dim}\SetKwData{Ang}{behavior}\SetKwData{Walla}{$W_1$}\SetKwData{Wallb}{$W_2$}\SetKwData{Flag}{flag}\SetKwData{Count}{counter}
+    \KwDati{\Matrix: matrice dei dati del pathshape ordinati, \Dim: numero di vettori presenti nella matrice}
+    \KwRisult{Viene restituito un vettore contenente dei flag indicanti il comportamento della curva}
+    \BlankLine
+    \Ang $\leftarrow $[ ]\;
+    \Flag $\leftarrow 0$\tcp*[l]{il valore può essere 0, -1 o +1}
+    \Count $\leftarrow 0$\;
+    \Walla $\leftarrow 0.065 \cdot pshapeStep$\;
+    \Wallb $\leftarrow 0.015 \cdot pshapeStep$\;
+    \If(\tcp*[f]{Pochi elementi su cui lavorare}){\Dim $<5$}{\Return\;}
+    \For{$i \leftarrow 1$ \KwTo $dim-1$}{
+        \tcp{inizialmente è necessario trovare la differenza di angolazione tra un punto e il successivo}
+        $\alpha \leftarrow$ \Matrix[$i$].angle-\Matrix[$i+1$].angle\;
+        \If{$\alpha >$\Walla}{
+            \tcp{---|--------|--0--|--------|***}
+            \Flag $\leftarrow$ +1\tcp*[l]{Indicante curva a destra}
+            \emph{assegnare ai \Count elementi precedenti \Ang[$i$] il valore \Flag}\;
+            \Count $\leftarrow$ 0\;
+        } \ElseIf{$\alpha >$\Wallb}{
+            \tcp{---|--------|--0--|********|---}
+            \lIf{\Flag == -1} {
+                \tcp{In caso di una inversione di tendenza la flag viene istantaneamente resettata a 0}
+                \Flag $\leftarrow$ 0\;
+            }
+            \emph{assegnare ai \Count elementi precedenti  di \Ang[$i$] il valore \Flag}\;
+            \Count $\leftarrow$ 0\;
+        }
+        $\vdots$
+    }
+    \caption{L'algoritmo \textbf{filterCurve} effettua uno studio preliminare sul comportamento dei singoli punti, riportando dati utili all'identificazione della curva.}
+\end{algorithm}
+
+\begin{algorithm}[!t]
+    \SetKwData{Matrix}{matrix}\SetKwData{Dim}{dim}\SetKwData{Ang}{behavior}\SetKwData{Walla}{$W_1$}\SetKwData{Wallb}{$W_2$}\SetKwData{Flag}{flag}\SetKwData{Count}{counter}
+    \For{$i \leftarrow 1$ \KwTo $dim-1$}{
+        $\vdots$ \BlankLine
+        \ElseIf{$\alpha >$ 0}{
+            \tcp{---|--------|--0**|--------|---}
+            \If(\tcp*[f]{Se il punto risultava in curva}){\Flag != 0}{
+                \Count $\leftarrow$ \Count+1\;
+                \If{\Count $>$ 2}{
+                    \tcp{Nel caso la condizione venga saltata l'assegnazione di \Ang viene sospesa per un giro}
+                    \Flag $\leftarrow$ 0\;
+                    \emph{assegna a \Ang[$i$], \Ang[$i-1$] e \Ang[$i-2$] il valore di \Flag}\;
+                    \Count $\leftarrow$ 0\;
+                }
+            } \Else{
+                \Ang[$i$] $\leftarrow$ 0\tcp*[l]{Viene assegnato come rettilineo}
+            }
+        } \ElseIf{$\alpha >$ -\Wallb}{
+            \tcp{---|--------|**0--|--------|---}
+            \If{\Flag != 0}{
+                \Count $\leftarrow$ \Count+1
+                \If{\Count $>$ 2}{
+                    \Flag $\leftarrow$ 0\;
+                    \emph{assegna a \Ang[$i$], \Ang[$i-1$] e \Ang[$i-2$] il valore di \Flag}\;
+                    \Count $\leftarrow$ 0\;
+                    }
+            } \Else{
+                \Ang[$i$] $\leftarrow$ 0\;
+            }
+        } \ElseIf{$\alpha >$ -\Walla}{
+            \tcp{---|********|--0--|--------|---}
+            \lIf{\Flag == +1} {
+                \Flag $\leftarrow$ 0\;
+            }
+            \emph{assegnare ai \Count elementi precedenti di \Ang[$i$] il valore \Flag}\;
+            \Count $\leftarrow$ 0\;
+        }
+        $\vdots$
+    }
+\end{algorithm}
+
+\begin{algorithm}[!t]
+\SetKwData{Matrix}{matrix}\SetKwData{Dim}{dim}\SetKwData{Ang}{behavior}\SetKwData{Walla}{$W_1$}\SetKwData{Wallb}{$W_2$}\SetKwData{Flag}{flag}\SetKwData{Count}{counter}
+
+\For{$i \leftarrow 1$ \KwTo $dim-1$}{
+    $\vdots$ \BlankLine
+    \Else{
+        \tcp{***|--------|--0--|--------|---}
+        \Flag $\leftarrow$ -1\tcp*[l]{Indicante curva a sinistra}
+        \emph{assegnare ai \Count elementi precedenti di \Ang[$i$] il valore \Flag}\;
+        \Count $\leftarrow$ 0\;
+    }
+}
+\If{\Count $>$ 0}{\emph{Assegnare gli ultimi \Count punti sospesi al valore di \Flag}\;}
+\end{algorithm}
+
+\newpage
+
+\begin{algorithm}[!t]
+    \SetKwData{Curve}{curve\_data}\SetKwData{Dim}{dim}\SetKwData{Matrix}{matrix}\SetKwData{Ret}{ret\_matrix}
+    \KwDati{\Curve: vettore contenente i flag assegnati usando la funzione \textit{filterCurve}, \Matrix: la matrice dei dati ottenuta dal pathshape, \Dim: il numero di punti contenuti in \Matrix e \Curve}
+    \KwRisult{Viene restituita una matrice di dimensione $3\times n$, con $n$ pari al numero di curve rilevate. Ogni riga viene riempita con dei valori che indicano l'indice dove la curva ha inizio e l'indice dove essa ha fine. }
+    \BlankLine
+    \Ret $\leftarrow$ [ ];
+    $last \leftarrow $ 0\tcp*[l]{mantiene l'ultimo fag in memoria}
+    $count \leftarrow $ 0\tcp*[l]{mantiene in memoria il numero di curve trovate}
+    $curve \leftarrow $ 0\tcp*[l]{usato per caricare in memoria il flag corrente}
+    \For{$i \leftarrow$ 1 \KwTo \Dim}{
+        $curve \leftarrow$ \Curve[i]\;
+        \If{$curve$ != $last$}{
+            \If{$last$ != 0}{
+                \tcp{caso di passaggio * $\rightarrow$ curva o viceversa}
+                \Ret[$count$].end $\leftarrow i$\;
+                \Ret[$count$].flag $\leftarrow$ $last$\;
+                $count \leftarrow count+1$\;
+                \lIf(\tcp*[f]{passaggio curva $\rightarrow$ altra curva}){$curve$ != 0}{\Ret[$count$].begin $\leftarrow i$}
+            } \lElse(\tcp*[f]{per gestire il passaggio da rettilineo a curva}){\Ret[$count$].begin $\leftarrow i$}
+        }
+    }
+    \If(\tcp*[f]{curva idenfiticata ma non ancora chiusa}){$curve$ != 0 and $last$ == $curve$}{
+        \Ret[$count$].end $\leftarrow$ \Dim\;
+        \Ret[$count$].flag $\leftarrow$ $last$\;
+    }
+    \Return{$count$}
+
+    \caption{L'algoritmo \textbf{splitCurves} si occupa di scorrere i dati precedentemente ottenuti dalla funzione \textit{filterCurve} per ricavare i punti dove le eventuali curve iniziano e finiscono.}
+\end{algorithm}
+
+\newpage
+
+\begin{algorithm}[!t]
+    \SetKwData{Matrix}{matrix}\SetKwData{Dim}{dim}\SetKwData{Curve}{curve\_n}\SetKwData{Beg}{beginpoint}\SetKwData{En}{endpoint}
+    \SetKwFunction{Splitc}{splitCurves}
+    \KwDati{\Matrix: La matrice ottenuta dal pathshape, ordinata e integrata con i flag indicanti la curvatura nei singoli punti,\\\Beg: indice del primo punto della curva da considerare, \\\En: indice dell'ultimo punto della curva da considerare, \\\Dim: il numero di vettori in \Matrix}
+    \KwRisult{Un vettore contenente raggio, coordinate del centro e distanza dell'arco di curva}
+
+    \BlankLine
+    \BlankLine
+    \emph{costruire la matrice $mat$ di dimensioni $3\times(\En-\Beg)$ inserendo in ogni linea un vettore $(x_i,y_i,1)$ costruito come $x_i=\Matrix[\Beg+i]$ e $y_i=\Matrix[\Beg+i]$}\;
+    \BlankLine
+    \emph{costruire il vettore verticale $vect$ di dimensione $(\En-\Beg)$ inserendo in ogni linea il valore seguente: $vect_i = -(x_i^2+y_i^2)$ con $x_i$ e $y_i$ come sopra}\;
+    \BlankLine
+    \emph{si applica una decomposizione a valori singolari sulla matrice $mat$ per ottenerne la pseudoinversa $mat^{-1}$}\;
+    \tcp{il passo precedente è necessario per poter calcolare la divisione sinistra $mat \setminus vect$}
+    $X \leftarrow mat^{-1}\cdot vect$ \tcp*[l]{$X$ risulta essere un vettore di 3 valori}
+    \tcp{qui sotto vengono calcolati raggio e centro dell'arco di curva}
+    $r \leftarrow sqrt{(X_1^2+X_2^2)/4}-X_3$\;
+    $x_c \leftarrow -0.5\cdot X_1$\;
+    $y_c \leftarrow -0.5\cdot X_2$\;
+    \tcp{si passa quindi a calcolare l'angolo di curvatura}
+    $x_{start}, y_{start} \leftarrow$ \Matrix[\Beg].x, \Matrix[\Beg].y\;
+    $x_{end}, y_{end} \leftarrow$ \Matrix[\En].x, \Matrix[\En].y\;
+    $l \leftarrow (x_{start}-x_c)^2+(y_{start}-y_c)^2$\;
+    $u \leftarrow ((x_{end}-x_{start})\cdot (x_c-x_{start})+(y_{end}-y_{start})\cdot (y_c-y_{start}))/l$\;
+    $x_p, y_p \leftarrow (x_{start}+u\cdot (x_c-x_{start})), (y_{start}+u\cdot (y_c-y_{start}))$\;
+    $d \leftarrow sqrt{(x_{end}-x_p)^2+(y_{end}-y_p)^2}$
+    $\alpha \leftarrow \arcsin{(d/r)}$\;
+    \Return{[$\alpha, x_c, y_c, r$]}\;
+
+    \caption{L'algoritmo \textbf{findCurvature} si occupa di trovare i parametri della curva visibile nell'immagine.}
+\end{algorithm}
+
+\begin{algorithm}[t]
+    \SetKwData{Anga}{$\alpha_1$} \SetKwData{Angb}{$\alpha_2$} \SetKwData{Ra}{$r_1$} \SetKwData{Rb}{$r_2$} \SetKwData{Flaga}{$type_1$} \SetKwData{Flagb}{$type_2$}
+    \KwDati{\Anga, \Ra, \Flaga: angolo, raggio e direzione (sx/dx) della prima curva salvata in memoria; \Angb, \Rb, \Flagb: angolo, raggio e direzione della seconda curva calcolati grazie agli algoritmi precedentemente descritti.}
+    \KwRisult{Viene restituito un numero indicativo della distanza tra le due curve, più alto il numero meno simili sono le due curve.}
+
+    \BlankLine
+    $k \leftarrow 0$\;
+    \If(\tcp*[f]{le curve muovono in direzioni opposte}){\Flaga != \Flagb}{
+        $k \leftarrow k+1000$\;
+        \Return{k}\;
+    } \Else{
+        \tcp{il secondo caso viene pesato di meno in previsione agli errori di calcolo verificatisi}
+        \lIf{\Anga$< $\Angb}{$k \leftarrow k$+(\Angb-\Anga)}
+        \lElse(\tcp*[f]){$k \leftarrow k$+(\Anga-\Angb)*0.25}
+        $k \leftarrow k+|\Rb-\Ra|$\;
+    }
+    \Return{k}\;
+
+    \caption{L'algoritmo \textbf{curveDistance} serve per calcolare una distanza fra 2 curve.}
+\end{algorithm}
+
+\begin{algorithm}[t]
+    \SetKwData{Cdata}{curvedata} \SetKwData{Pdata}{pathdata}
+    \SetKwFunction{Dist}{curveDistance}
+    \SetKw{Continue}{continue}
+    \KwDati{\Cdata: struttura dati contenente i diversi parametri della curva studiata, \Pdata: vettore contenente delle strutture dati che mantengono i parametri di tutte le curve lungo il percorso.}
+    \KwRisult{Una o più strutture aventi i dati delle curve più vicine.}
+    \BlankLine
+    $minel \leftarrow \bot$\;
+    $mindist \leftarrow 1100$\;
+    $maxtol \leftarrow 0.3$\;
+    $set \leftarrow \emptyset$\;
+    \For{$el \in$ \Pdata}{
+        $dist \leftarrow$ \Dist{$el$.ang, $el$.r, $el$.flag, \Cdata.ang, \Cdata.r, \Cdata.flag}\;
+        \If{$dist<mindist$}{
+            $mindist \leftarrow dist$\;
+            $minel \leftarrow el$\;
+        }
+    }
+    \If(\tcp*[f]{nessuna curva è troppo distante}){$mindist<2$}{
+        $set$.add($minel$)\;
+        \For{$el \in$ \Pdata}{
+            \lIf{$el$ == $minel$}{\Continue}
+            $dist \leftarrow$ \Dist{$el$.ang, $el$.r, $el$.flag, \Cdata.ang, \Cdata.r, \Cdata.flag}\;
+            \If{$dist<(mindist+maxtol)$}{
+                $set$.add($el$)\;
+            }
+        }
+    }
+    \Return{$set$}\;
+
+    \caption{L'algoritmo \textbf{matchPath} effettua il matching tra i dati calcolati dall'immagine di una curva e un set di curve in memoria.}
+\end{algorithm}

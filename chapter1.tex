@@ -1,0 +1,32 @@
+\chapter{Introduzione}
+
+\section{Il progetto}
+	Lo scopo del progetto è quello di ideare un robot in grado di muoversi lungo un percorso a terra contrassegnato da una linea nera. Il robot conosce a priori la struttura del percorso tuttavia deve riuscire a localizzarsi su di esso. Per sapere dov'è localizzato utilizza degli encoder posti sulle ruote, mantenendo un contatore dei giri compiuti per ciascuna di esse. In più si avvale di due telecamere: una laterale collegata a una scheda Beaglebone\footnote{\url{http://beagleboard.org/bone}} e puntata verso il terreno, permette al robot di identificare la linea e mantenerla al fianco e una frontale, collegata a una scheda IGEP\footnote{\url{https://www.isee.biz/products/igep-processor-boards}}, che analizza le immagini del percorso, allo scopo di ottenere informazioni rilevanti alla localizzazione del robot all'interno di esso.
+
+	Grazie agli encoder si sa esattamente quanti giri ha fatto ciascuna ruota e si riesce a calcolare facilmente la posizione del dispositivo. Gli encoder tuttavia accumulano dei piccoli errori che tendono ad accumularsi nel tempo. Questo provoca errori di calcolo i quali portano ad avere una stima della posizione non affidabile a medio e lungo termine.
+
+	Di conseguenza è stato deciso di inserire dei metodi di controllo incrociato della posizione, tra cui l'inserimento nel percorso di cartelli in posizioni note\cite{bombo} e un algoritmo che permetterà di riconoscere, utilizzando la telecamera frontale, il tipo di curva, permettendo un confronto con i dati memorizzati, riguardanti la struttura del percorso. Questo consentirà al robot di avere un riscontro sui dati degli encoder e di correggere eventualmente i valori di posizione.
+
+\section{Motivazioni}
+	Dalla nascita dell'informatica e della robotica si è sempre sognato di creare robot, macchine e veicoli in grado di interagire autonomamente con l'ambiente circostante. Un requisito fondamentale per raggiungere questo obiettivo è la visione artificiale (o computer vision) la quale è caratterizzata da processi atti a riprodurre la visione che gli umani hanno della realtà e dello spazio circostante.
+
+	Lo sviluppo recente in questo campo ha permesso il raggiungimento di obiettivi importanti nell'ambito automobilistico, permettendo ad esempio di evitare pericoli o riconoscere automaticamente segnali stradali. L'evoluzione tecnologica in questo campo sta ponendo le basi per la creazione di sistemi più complessi. Grazie all'unione tra visione artificiale e sensoristica di controllo nelle automobili, sarà possibile ideare sistemi che porteranno un giorno al completo controllo della viabilità stradale.
+
+\section{Obiettivi}
+
+	In questo progetto si affronterà il problema di implementazione dell'algoritmo di riconoscimento della tipologia di curva, attraverso le immagini prese dalla telecamera frontale. Utilizzando come base un algoritmo di identificazione di una linea su un immagine, si propone un modo per identificare il comportamento del percorso, elaborando i dati forniti da esso.
+
+	L'algoritmo di pathshape ricerca nell'immagine una linea compatibile a dei parametri impostati e restituisce una matrice contenente le coordinate $x$ e $y$ dei punti all'interno della linea e un angolo di inclinazione del percorso in quella particolare posizione. L'algoritmo di riconoscimento della curva, usando i dati ottenuti dall'algoritmo di pathshape, identifica delle eventuali curve. Se in quest'ultimo trova effettivamente una o più curve nell'area studiata ne calcola la distanza e se possibile il raggio, l'angolo e il centro di curvatura.
+
+	Ovviamente lavorando su un sistema embedded è necessario prestare attenzione alle prestazioni, a maggior ragione se consideriamo che l'algoritmo verrà eseguito su un oggetto in movimento.
+
+	Inoltre ci si aspetta che l'algoritmo riesca a riconoscere correttamente curve con raggio e angolo di curvatura differenti mantenendo un errore limitato, in modo da avere una affidabilità maggiore nella fase di matching.
+
+\section{Outline}
+	Dopo questa breve introduzione, la tesi si struttura su quattro capitoli.
+	\begin{itemize}
+		\item Capitolo 2: offre una descrizione di come opera l'algoritmo denominato pathshape.
+		\item Capitolo 3: viene mostrata nel dettaglio la struttura dell'algoritmo di identificazione della curva.
+		\item Capitolo 4: vengono esposti e analizzati i dati ottenuti dalle prove sperimentali svolte sull'algoritmo di identificazione della curva, confrontandoli con i dati raccolti sull'algoritmo di pathshape.
+		\item Capitolo 5: conclusioni del lavoro svolto.
+	\end{itemize}
